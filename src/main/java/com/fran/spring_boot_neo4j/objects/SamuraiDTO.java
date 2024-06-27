@@ -17,7 +17,7 @@ public class SamuraiDTO {
     private LocalDate birthDate;
     private LocalDate deathDate;
     private String identifier;
-    private String relationshipType;
+    private String relationshipTypeWithParent;
     private List<SamuraiDTO> offspring = new ArrayList<>();
 
     /**
@@ -166,13 +166,13 @@ public class SamuraiDTO {
     // Relationship type getters and setters
 
 
-    public String getRelationshipType() {
-        return relationshipType;
+    public String getRelationshipTypeWithParent() {
+        return relationshipTypeWithParent;
     }
 
 
-    public void setRelationshipType(String relationshipType) {
-        this.relationshipType = relationshipType;
+    public void setRelationshipTypeWithParent(String relationshipType) {
+        this.relationshipTypeWithParent = relationshipType;
     }
 
     // Offspring-related getters and setters

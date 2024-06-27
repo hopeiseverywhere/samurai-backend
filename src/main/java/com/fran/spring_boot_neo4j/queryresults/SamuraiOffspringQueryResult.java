@@ -3,7 +3,7 @@ package com.fran.spring_boot_neo4j.queryresults;
 import com.fran.spring_boot_neo4j.models.Samurai;
 
 /**
- * Custom query result class for samurai offspring.
+ * Query result class for retrieving a samurai offspring and the relationship type.
  */
 public class SamuraiOffspringQueryResult {
 

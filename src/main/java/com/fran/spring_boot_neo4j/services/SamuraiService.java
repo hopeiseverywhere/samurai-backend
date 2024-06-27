@@ -200,7 +200,7 @@ public class SamuraiService {
             // Avoid cyclic relationships by checking if the samurai has been visited
             if (!visited.containsKey(child.getIdentifier())) {
                 SamuraiDTO childDTO = convertToDTO(child);
-                childDTO.setRelationshipType(relationshipType);
+                childDTO.setRelationshipTypeWithParent(relationshipType);
                 visited.put(child.getIdentifier(), childDTO);
                 parentDTO.addOffspring(childDTO);
                 buildTree(childDTO, visited);
