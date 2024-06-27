@@ -65,9 +65,7 @@ public interface SamuraiRepository extends Neo4jRepository<Samurai, Long> {
      */
     @Query(
         "MATCH (parent:Samurai {identifier: $parentIdentifier}), (child:Samurai {identifier: $childIdentifier}) "
-            +
-            "MERGE (parent)-[r:PARENT_CHILD {type: $relationshipType}]->(child) " +
-            "RETURN r")
+            + "MERGE (parent)-[r:PARENT_CHILD {type: $relationshipType}]->(child) " + "RETURN r")
     void createParentChildRelationship(String parentIdentifier, String childIdentifier,
         String relationshipType);
 
@@ -77,7 +75,7 @@ public interface SamuraiRepository extends Neo4jRepository<Samurai, Long> {
      * @param identifier the identifier of the samurai
      * @return a list of offspring samurai with relationship type
      */
-    @Query("MATCH (parent:Samurai {identifier: $identifier})-[r:PARENT_CHILD]->(offspring:Samurai) " +
-           "RETURN offspring AS offspring, r.type AS relationshipType")
+    @Query("MATCH (parent:Samurai {identifier: $identifier})-[r:PARENT_CHILD]->(offspring:Samurai) "
+        + "RETURN offspring AS offspring, r.type AS relationshipType")
     List<SamuraiOffspringQueryResult> findAllOffspringByIdentifierWithType(String identifier);
 }
