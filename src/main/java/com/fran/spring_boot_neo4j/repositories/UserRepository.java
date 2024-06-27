@@ -1,7 +1,6 @@
 package com.fran.spring_boot_neo4j.repositories;
 
 import com.fran.spring_boot_neo4j.models.User;
-import com.fran.spring_boot_neo4j.queryresults.CourseEnrollmentQueryResult;
 import java.util.Optional;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
@@ -35,17 +34,5 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
             "RETURN EXISTS((user)-[:ENROLLED_IN]->(course))")
     Boolean findEnrollmentStatus(String username, String identifier);
 
-    /**
-     * Creates an enrollment relationship between a user and a course.
-     *
-     * @param username   the username of the user
-     * @param identifier the identifier of the course
-     * @return a {@link CourseEnrollmentQueryResult} containing the user and course involved in the
-     * enrollment relationship
-     */
-    @Query(
-        "MATCH (user:User), (course:Course) WHERE user.username = $username "
-            + "AND course.identifier = $identifier " +
-            "CREATE (user)-[:ENROLLED_IN]->(course) RETURN user, course")
-    CourseEnrollmentQueryResult createEnrollmentRelationship(String username, String identifier);
+
 }

@@ -5,6 +5,7 @@ import com.fran.spring_boot_neo4j.objects.SamuraiDTO;
 import com.fran.spring_boot_neo4j.requests.AddRelationshipRequest;
 import com.fran.spring_boot_neo4j.requests.CreateSamuraiRequest;
 import com.fran.spring_boot_neo4j.services.SamuraiService;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -109,5 +110,17 @@ public class SamuraiController {
         samuraiService.addParentChildRelationship(parentIdentifier, childIdentifier, rType);
 
         return new ResponseEntity<>("Relationship successfully added", HttpStatus.OK);
+    }
+
+    /**
+     * Retrieves all offspring of a samurai in a tree structure.
+     *
+     * @param identifier the identifier of the samurai
+     * @return a {@code ResponseEntity} containing the tree structure of offspring
+     */
+    @GetMapping("/offspring/{identifier}")
+    public ResponseEntity<SamuraiDTO> getSamuraiOffspring(@PathVariable String identifier) {
+        SamuraiDTO samuraiTree = samuraiService.getSamuraiTree(identifier);
+        return new ResponseEntity<>(samuraiTree, HttpStatus.OK);
     }
 }
