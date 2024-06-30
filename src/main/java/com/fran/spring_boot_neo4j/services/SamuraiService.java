@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -64,25 +63,32 @@ public class SamuraiService {
      *                                 exists
      */
     public Samurai createSamurai(CreateSamuraiRequest request) {
-        // Check for uniqueness
-        Optional<Samurai> existingSamurai = samuraiRepository.findSamuraiByGivenNameENAndFamilyNameEN(
-            request.getGivenNameEN(), request.getFamilyNameEN());
+        // Check for uniqueness by iterating through the available keys in the givenName and familyName maps
+        boolean samuraiExists = request.getGivenName().entrySet().stream().anyMatch(
+            entry -> samuraiRepository.findSamuraiByGivenNameAndFamilyName(entry.getValue(),
+                request.getFamilyName().get(entry.getKey())).isPresent()
+        );
 
-        if (existingSamurai.isPresent()) {
+        if (samuraiExists) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Samurai already exists");
         }
 
         // Create and save new samurai
         Samurai samurai = new Samurai();
         samurai.setSocialStatus(SocialStatus.SAMURAI);
-        samurai.setGivenNameEN(request.getGivenNameEN());
-        samurai.setFamilyNameEN(request.getFamilyNameEN());
+        samurai.setGivenName(request.getGivenName());
+        samurai.setFamilyName(request.getFamilyName());
 
         // Generate nickname if not provided
-        if (request.getNickNameEN() == null || request.getNickNameEN().isEmpty()) {
-            samurai.setNickNameEN(request.getFamilyNameEN() + " " + request.getGivenNameEN());
+        if (request.getNickName() == null || request.getNickName().isEmpty()) {
+            Map<String, String> nickName = new HashMap<>();
+            for (String lang : request.getGivenName().keySet()) {
+                nickName.put(lang,
+                    request.getFamilyName().get(lang) + " " + request.getGivenName().get(lang));
+            }
+            samurai.setNickName(nickName);
         } else {
-            samurai.setNickNameEN(request.getNickNameEN());
+            samurai.setNickName(request.getNickName());
         }
 
         // Set birthDate and deathDate if provided
@@ -97,15 +103,15 @@ public class SamuraiService {
         samurai.setFamilyHead(request.isFamilyHead());
 
         // Set Shisei related if provided
-        if (request.getUjiEN() != null) {
-            samurai.setUjiEN(request.getUjiEN());
+        if (request.getUji() != null) {
+            samurai.setUji(request.getUji());
         }
-        if (request.getKabaneEN() != null) {
-            samurai.setKabaneEN(request.getKabaneEN());
+        if (request.getKabane() != null) {
+            samurai.setKabane(request.getKabane());
         }
 
         // Generate and set a random identifier
-        samurai.setIdentifier(UUID.randomUUID().toString());
+        //samurai.setIdentifier(UUID.randomUUID().toString());
 
         // Set clan if provided
         Clan clan = getOrCreateClan(request);
@@ -113,6 +119,7 @@ public class SamuraiService {
 
         Samurai savedSamurai = samuraiRepository.save(samurai);
 
+        // Generate parent-child relationship if parent identifier is provided
         // Generate parent-child relationship if parent identifier is provided
         if (request.getParentIdentifier() != null && !request.getParentIdentifier().isEmpty()) {
             Samurai parent = getSamuraiByIdentifier(request.getParentIdentifier());
@@ -131,19 +138,28 @@ public class SamuraiService {
      * @return the existing or newly created clan
      */
     private Clan getOrCreateClan(CreateSamuraiRequest request) {
-        String clanNameEN;
-        if (request.getClanNameEN() != null && !request.getClanNameEN().isEmpty()) {
-            clanNameEN = request.getClanNameEN();
+        Map<String, String> clanName;
+        if (request.getClanName() != null && !request.getClanName().isEmpty()) {
+            clanName = request.getClanName();
         } else {
-            clanNameEN = request.getFamilyNameEN();
+            clanName = new HashMap<>(request.getFamilyName());
         }
 
-        return clanRepository.findByClanNameEN(clanNameEN)
-            .orElseGet(() -> {
-                Clan newClan = new Clan(clanNameEN);
-                newClan.setIdentifier(UUID.randomUUID().toString());
-                return clanRepository.save(newClan);
-            });
+        Optional<Clan> existingClanOpt = clanName.values().stream()
+            .map(clanRepository::findByClanName)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .findFirst();
+
+        if (existingClanOpt.isPresent()) {
+            Clan existingClan = existingClanOpt.get();
+            existingClan.setClanName(clanName);
+            return clanRepository.save(existingClan);
+        } else {
+            Clan newClan = new Clan();
+            newClan.setClanName(clanName);
+            return clanRepository.save(newClan);
+        }
     }
 
     /**
@@ -259,12 +275,16 @@ public class SamuraiService {
      * @return the DTO representation of the samurai
      */
     private SamuraiDTO convertToDTO(Samurai samurai) {
-        SamuraiDTO dto = new SamuraiDTO(samurai.getIdentifier(), samurai.getGivenNameEN(),
-            samurai.getFamilyNameEN());
-        dto.setNickNameEN(samurai.getNickNameEN());
+        SamuraiDTO dto = new SamuraiDTO(
+            samurai.getIdentifier(),
+            samurai.getGivenName(),
+            samurai.getFamilyName()
+        );
+        dto.setNickName(samurai.getNickName());
         dto.setBirthDate(samurai.getBirthDate());
         dto.setDeathDate(samurai.getDeathDate());
         dto.setSex(samurai.getSex());
+        dto.setFamilyHead(samurai.isFamilyHead());
         return dto;
     }
 
@@ -276,14 +296,32 @@ public class SamuraiService {
      * @throws ResponseStatusException if the samurai or clan is not found
      */
     public void addSamuraiToClan(String samuraiIdentifier, String clanName) {
-        // Retrieve the samurai by identifier
         Samurai samurai = getSamuraiByIdentifier(samuraiIdentifier);
 
+        // Determine the appropriate language for the clan name from the samurai's family name map
+        String appropriateLanguage = null;
+        for (Map.Entry<String, String> entry : samurai.getFamilyName().entrySet()) {
+            if (entry.getValue().equals(clanName)) {
+                appropriateLanguage = entry.getKey();
+                break;
+            }
+        }
+
+        // If no appropriate language is found, use the first language available in the family name map
+        if (appropriateLanguage == null && !samurai.getFamilyName().isEmpty()) {
+            appropriateLanguage = samurai.getFamilyName().keySet().iterator().next();
+        }
+
         // Retrieve or create the clan
-        Clan clan = clanRepository.findByClanNameEN(clanName)
+        String finalAppropriateLanguage = appropriateLanguage;
+        Clan clan = clanRepository.findByClanName(clanName)
             .orElseGet(() -> {
-                Clan newClan = new Clan(clanName);
-                newClan.setIdentifier(UUID.randomUUID().toString());
+                Clan newClan = new Clan();
+                Map<String, String> clanNames = new HashMap<>();
+                if (finalAppropriateLanguage != null) {
+                    clanNames.put(finalAppropriateLanguage, clanName);
+                }
+                newClan.setClanName(clanNames);
                 return clanRepository.save(newClan);
             });
 

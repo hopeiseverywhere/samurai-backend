@@ -24,20 +24,26 @@ public interface SamuraiRepository extends Neo4jRepository<Samurai, Long> {
     Optional<Samurai> findSamuraiByIdentifier(String identifier);
 
     /**
-     * Finds a samurai by its given name and family name.
+     * Finds a samurai by any of its given names and family names in different languages.
+     * This query checks if the provided givenName and familyName exist in the respective
+     * properties, which are maps containing names in multiple languages.
      *
-     * @param givenNameEN  the given name of the samurai
-     * @param familyNameEN the family name of the samurai
+     * @param givenName  the given name of the samurai in any language
+     * @param familyName the family name of the samurai in any language
      * @return an {@link Optional} containing the found samurai, or empty if no samurai found
      */
-    Optional<Samurai> findSamuraiByGivenNameENAndFamilyNameEN(String givenNameEN, String familyNameEN);
+    @Query("MATCH (s:Samurai) WHERE $givenName IN s.givenName AND $familyName IN s.familyName RETURN s")
+    Optional<Samurai> findSamuraiByGivenNameAndFamilyName(String givenName, String familyName);
 
     /**
-     * Finds a samurai by its nickname.
+     * Finds a samurai by any of its nicknames in different languages.
+     * This query checks if the provided nickName exists in the nickName property, which is a map
+     * containing nicknames in multiple languages.
      *
-     * @param nickName the nickname of the samurai
+     * @param nickName the nickname of the samurai in any language
      * @return an {@link Optional} containing the found samurai, or empty if no samurai found
      */
+    @Query("MATCH (s:Samurai) WHERE $nickName IN s.nickName RETURN s")
     Optional<Samurai> findSamuraiByNickName(String nickName);
 
     /**
@@ -75,7 +81,7 @@ public interface SamuraiRepository extends Neo4jRepository<Samurai, Long> {
      * @param identifier the identifier of the samurai
      * @return a list of offspring samurai with relationship type
      */
-    @Query("MATCH (parent:Samurai {identifier: $identifier})-[r:PARENT_CHILD]->(offspring:Samurai) "
+    @Query("MATCH (parent:Samurai {identifier: $identifier})-[r:PARENT_OF]->(offspring:Samurai) "
         + "RETURN offspring AS offspring, r.type AS relationshipType")
     List<SamuraiOffspringQueryResult> findAllOffspringByIdentifierWithType(String identifier);
 

@@ -11,6 +11,8 @@ import com.fran.spring_boot_neo4j.requests.AddRelationshipRequest;
 import com.fran.spring_boot_neo4j.requests.CreateSamuraiRequest;
 import com.fran.spring_boot_neo4j.services.SamuraiService;
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -36,8 +38,13 @@ class SamuraiControllerTest {
     void testGetSamuraiByIdentifier() {
         String identifier = "123";
         Samurai samurai = new Samurai();
-        samurai.setGivenName("Taro");
-        samurai.setFamilyName("Yamada");
+        Map<String, String> givenName = new HashMap<>();
+        givenName.put("en", "Taro");
+        Map<String, String> familyName = new HashMap<>();
+        familyName.put("en", "Yamada");
+
+        samurai.setGivenName(givenName);
+        samurai.setFamilyName(familyName);
         samurai.setBirthDate(LocalDate.of(1500, 1, 1));
         samurai.setDeathDate(LocalDate.of(1570, 12, 31));
 
@@ -46,8 +53,8 @@ class SamuraiControllerTest {
         ResponseEntity<SamuraiDTO> response = samuraiController.getSamuraiByIdentifier(identifier);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals("Taro", response.getBody().getGivenName());
-        assertEquals("Yamada", response.getBody().getFamilyName());
+        assertEquals("Taro", response.getBody().getGivenName().get("en"));
+        assertEquals("Yamada", response.getBody().getFamilyName().get("en"));
         assertEquals(LocalDate.of(1500, 1, 1), response.getBody().getBirthDate());
         assertEquals(LocalDate.of(1570, 12, 31), response.getBody().getDeathDate());
 
@@ -56,24 +63,28 @@ class SamuraiControllerTest {
 
     @Test
     void testCreateSamurai() {
+        Map<String, String> givenName = Map.of("en", "Hanzo");
+        Map<String, String> familyName = Map.of("en", "Hattori");
+
         CreateSamuraiRequest request = new CreateSamuraiRequest();
-        request.setGivenName("Hanzo");
-        request.setFamilyName("Hattori");
+        request.setGivenName(givenName);
+        request.setFamilyName(familyName);
 
         Samurai createdSamurai = new Samurai();
-        createdSamurai.setGivenName("Hanzo");
-        createdSamurai.setFamilyName("Hattori");
+        createdSamurai.setGivenName(givenName);
+        createdSamurai.setFamilyName(familyName);
 
         when(samuraiService.createSamurai(request)).thenReturn(createdSamurai);
 
         ResponseEntity<Samurai> response = samuraiController.createSamurai(request);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals("Hanzo", response.getBody().getGivenName());
-        assertEquals("Hattori", response.getBody().getFamilyName());
+        assertEquals("Hanzo", response.getBody().getGivenName().get("en"));
+        assertEquals("Hattori", response.getBody().getFamilyName().get("en"));
 
         verify(samuraiService, times(1)).createSamurai(request);
     }
+
 
     @Test
     void testDeleteSamurai() {
@@ -128,7 +139,10 @@ class SamuraiControllerTest {
     @Test
     void testGetSamuraiOffspring() {
         String identifier = "123";
-        SamuraiDTO samuraiDTO = new SamuraiDTO("identifier", "Taro", "Yamada");
+        Map<String, String> givenName = Map.of("en", "Taro");
+        Map<String, String> familyName = Map.of("en", "Yamada");
+
+        SamuraiDTO samuraiDTO = new SamuraiDTO(givenName, familyName);
 
         when(samuraiService.getSamuraiTree(identifier)).thenReturn(samuraiDTO);
 

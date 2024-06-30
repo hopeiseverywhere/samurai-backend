@@ -6,4 +6,4 @@
   - [ ] Household top
 - [ ] Query direct offspring
 - [ ] Query by a clan
-- [ ] Multi-language support
+- [x] Multi-language support

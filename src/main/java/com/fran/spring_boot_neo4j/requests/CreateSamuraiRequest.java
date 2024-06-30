@@ -2,6 +2,7 @@ package com.fran.spring_boot_neo4j.requests;
 
 import com.fran.spring_boot_neo4j.models.enums.BirthSex;
 import java.time.LocalDate;
+import java.util.Map;
 import lombok.Data;
 
 /**
@@ -10,9 +11,21 @@ import lombok.Data;
 @Data
 public class CreateSamuraiRequest {
 
-    private String givenNameEN;
-    private String familyNameEN;
-    private String nickNameEN;
+    private Map<String, String> givenName;
+    private Map<String, String> familyName;
+    private Map<String, String> nickName;
+    private Map<String, String> clanName;
+    /**
+     * 氏
+     */
+    private Map<String, String> uji;
+
+    /**
+     * 八色の姓
+     */
+
+    private Map<String, String> kabane;
+
     private BirthSex sex;
     private LocalDate birthDate;
     private LocalDate deathDate;
@@ -21,17 +34,6 @@ public class CreateSamuraiRequest {
 
     private boolean isFamilyHead;
 
-    private String clanNameEN;
-
-    /**
-     * 氏
-     */
-    private String ujiEN;
-
-    /**
-     * 八色の姓
-     */
-    private String kabaneEN;
 
     /**
      * Default constructor.
@@ -46,10 +48,10 @@ public class CreateSamuraiRequest {
      * @param givenName  the given name of the samurai
      * @param familyName the family name of the samurai
      */
-    public CreateSamuraiRequest(String givenName, String familyName) {
-        this.givenNameEN = givenName;
-        this.familyNameEN = familyName;
-        this.nickNameEN = familyName + " " + givenName;
+    public CreateSamuraiRequest(Map<String, String> givenName, Map<String, String> familyName) {
+        this.givenName = givenName;
+        this.familyName = familyName;
+        this.nickName = generateNickName(familyName, givenName);
     }
 
     /**
@@ -60,16 +62,27 @@ public class CreateSamuraiRequest {
      * @param familyName the family name of the samurai
      * @param nickName   the nickname of the samurai
      */
-    public CreateSamuraiRequest(String givenName, String familyName, String nickName) {
-        this.givenNameEN = givenName;
-        this.familyNameEN = familyName;
-        this.nickNameEN = nickName;
+    public CreateSamuraiRequest(Map<String, String> givenName, Map<String, String> familyName,
+        Map<String, String> nickName) {
+        this.givenName = givenName;
+        this.familyName = familyName;
+        this.nickName = nickName;
     }
 
     // Family related
 
     public boolean isFamilyHead() {
         return isFamilyHead;
+    }
+
+    private Map<String, String> generateNickName(Map<String, String> familyName,
+        Map<String, String> givenName) {
+        // Implement your logic to generate nicknames in multiple languages
+        // This example just concatenates the values with a space
+        return Map.of(
+            "en", givenName.get("en") + " " + familyName.get("en"),
+            "jp", familyName.get("jp") + " " + givenName.get("jp")
+        );
     }
 
 }

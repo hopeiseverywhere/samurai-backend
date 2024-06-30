@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class SamuraiController {
 
     private final SamuraiService samuraiService;
-    private static final Logger logger = LoggerFactory.getLogger(SamuraiController.class);
 
     /**
      * Constructs a new {@code SamuraiController} with the specified samurai service.
@@ -46,7 +45,7 @@ public class SamuraiController {
     @GetMapping("/{identifier}")
     public ResponseEntity<SamuraiDTO> getSamuraiByIdentifier(@PathVariable String identifier) {
         Samurai samurai = samuraiService.getSamuraiByIdentifier(identifier);
-        SamuraiDTO responseSamurai = new SamuraiDTO(samurai.getGivenNameEN(), samurai.getFamilyNameEN(),
+        SamuraiDTO responseSamurai = new SamuraiDTO(samurai.getGivenName(), samurai.getFamilyName(),
             samurai.getBirthDate(), samurai.getDeathDate());
 
         return new ResponseEntity<>(responseSamurai, HttpStatus.OK);

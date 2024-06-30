@@ -3,7 +3,7 @@ package com.fran.spring_boot_neo4j.services;
 import com.fran.spring_boot_neo4j.models.Clan;
 import com.fran.spring_boot_neo4j.repositories.ClanRepository;
 import com.fran.spring_boot_neo4j.repositories.SamuraiRepository;
-import java.util.UUID;
+import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -28,6 +28,20 @@ public class ClanService {
         this.samuraiRepository = samuraiRepository;
     }
 
+    public Clan saveClan(Clan clan) {
+        return clanRepository.save(clan);
+    }
+
+    /**
+     * Checks if a clan with the specified name exists in any language.
+     *
+     * @param name the name of the clan
+     * @return true if a clan with the specified name exists, false otherwise
+     */
+    public boolean clanNameExists(String name) {
+        return clanRepository.findByClanName(name).isPresent();
+    }
+
     /**
      * Retrieves a clan by its name.
      *
@@ -36,7 +50,7 @@ public class ClanService {
      * @throws ResponseStatusException if the clan is not found
      */
     public Clan getClanByName(String name) {
-        return clanRepository.findByClanNameEN(name)
+        return clanRepository.findByClanName(name)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clan not found"));
     }
 
@@ -53,19 +67,33 @@ public class ClanService {
     }
 
     /**
+     * Deletes a clan by its identifier.
+     *
+     * @param identifier the identifier of the clan to delete
+     * @throws ResponseStatusException if the clan is not found
+     */
+    public void deleteClan(String identifier) {
+        Clan clan = clanRepository.findByIdentifier(identifier)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clan not found"));
+        clanRepository.delete(clan);
+    }
+
+    /**
      * Creates a new clan with the specified name.
      *
      * @param clanName the name of the clan to create
      * @return the created clan
      * @throws ResponseStatusException if a clan with the same name already exists
      */
-    public Clan createClan(String clanName) {
-        if (clanRepository.findByClanNameEN(clanName).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Clan already exists");
+    public Clan createClan(Map<String, String> clanName) {
+        // Check for existence by any of the names in the map
+        for (String name : clanName.values()) {
+            if (clanRepository.findByClanName(name).isPresent()) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Clan already exists");
+            }
         }
 
         Clan clan = new Clan(clanName);
-        clan.setIdentifier(UUID.randomUUID().toString());
         return clanRepository.save(clan);
     }
 
@@ -76,11 +104,12 @@ public class ClanService {
      * @param clanName        the name of the clan
      * @throws ResponseStatusException if the clan is not found
      */
-    public void addClanToHuman(String humanIdentifier, String clanName) {
-        Clan clan = clanRepository.findByClanNameEN(clanName)
+    public void addClanToHuman(String humanIdentifier, Map<String, String> clanName) {
+        Clan clan = clanRepository.findByClanName(clanName.values().iterator().next())
             .orElseGet(() -> clanRepository.save(new Clan(clanName)));
         samuraiRepository.addClanToHuman(humanIdentifier, clan.getIdentifier());
     }
+
 
     /**
      * Adds a sub-clan relationship between two clans by their names.
@@ -89,13 +118,15 @@ public class ClanService {
      * @param parentClanName the name of the parent clan
      * @throws ResponseStatusException if either clan is not found
      */
-    public void addSubClanRelationshipByName(String clanName, String parentClanName) {
-        Clan clan = clanRepository.findByClanNameEN(clanName)
+    public void addSubClanRelationshipByName(Map<String, String> clanName,
+        Map<String, String> parentClanName) {
+        Clan clan = clanRepository.findByClanName(clanName.values().iterator().next())
             .orElseGet(() -> clanRepository.save(new Clan(clanName)));
-        Clan parentClan = clanRepository.findByClanNameEN(parentClanName)
+        Clan parentClan = clanRepository.findByClanName(parentClanName.values().iterator().next())
             .orElseGet(() -> clanRepository.save(new Clan(parentClanName)));
         addSubClanRelationshipByIdentifier(parentClan.getIdentifier(), clan.getIdentifier());
     }
+
 
     /**
      * Adds a sub-clan relationship between two clans by their identifiers.
@@ -107,5 +138,8 @@ public class ClanService {
     public void addSubClanRelationshipByIdentifier(String parentClanIdentifier,
         String subClanIdentifier) {
         clanRepository.addSubClanRelationship(parentClanIdentifier, subClanIdentifier);
+
     }
+
+
 }

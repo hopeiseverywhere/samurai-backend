@@ -1,8 +1,8 @@
 package com.fran.spring_boot_neo4j.controllers;
 
 import com.fran.spring_boot_neo4j.models.Clan;
-import com.fran.spring_boot_neo4j.repositories.ClanRepository;
-import java.util.Optional;
+import com.fran.spring_boot_neo4j.objects.ClanDTO;
+import com.fran.spring_boot_neo4j.services.ClanService;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.server.ResponseStatusException;
 
 
 /**
@@ -23,10 +24,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/api/v1/clan")
 public class ClanController {
 
-    private final ClanRepository clanRepository;
+    private final ClanService clanService;
 
-    public ClanController(ClanRepository clanRepository) {
-        this.clanRepository = clanRepository;
+    public ClanController(ClanService clanService) {
+        this.clanService = clanService;
     }
 
     /**
@@ -37,12 +38,19 @@ public class ClanController {
      */
     @PostMapping("/")
     public ResponseEntity<Clan> createClan(@RequestBody Clan clan) {
-        Optional<Clan> existingClan = clanRepository.findByClanNameEN(clan.getClanNameEN());
-        if (existingClan.isPresent()) {
+        boolean clanExists = clan.getClanName().values().stream().anyMatch(
+            name -> clanService.clanNameExists(name)
+        );
+
+        if (clanExists) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
+
+        // Generate and set a random identifier
         clan.setIdentifier(UUID.randomUUID().toString());
-        Clan savedClan = clanRepository.save(clan);
+
+        // Save the new clan
+        Clan savedClan = clanService.saveClan(clan);
         return new ResponseEntity<>(savedClan, HttpStatus.CREATED);
     }
 
@@ -54,9 +62,12 @@ public class ClanController {
      */
     @GetMapping("/{identifier}")
     public ResponseEntity<Clan> getClanByIdentifier(@PathVariable String identifier) {
-        Optional<Clan> clan = clanRepository.findByIdentifier(identifier);
-        return clan.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-            .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        try {
+            Clan clan = clanService.getClanById(identifier);
+            return new ResponseEntity<>(clan, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     /**
@@ -67,9 +78,12 @@ public class ClanController {
      */
     @GetMapping("/name/{clanName}")
     public ResponseEntity<Clan> getClanByClanName(@PathVariable String clanName) {
-        Optional<Clan> clan = clanRepository.findByClanNameEN(clanName);
-        return clan.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
-            .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        try {
+            Clan clan = clanService.getClanByName(clanName);
+            return new ResponseEntity<>(clan, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
     /**
@@ -82,14 +96,14 @@ public class ClanController {
     @PutMapping("/{identifier}")
     public ResponseEntity<Clan> updateClan(@PathVariable String identifier,
         @RequestBody Clan clan) {
-        Optional<Clan> existingClan = clanRepository.findByIdentifier(identifier);
-        if (!existingClan.isPresent()) {
+        try {
+            Clan existingClan = clanService.getClanById(identifier);
+            existingClan.setClanName(clan.getClanName());
+            Clan savedClan = clanService.saveClan(existingClan);
+            return new ResponseEntity<>(savedClan, HttpStatus.OK);
+        } catch (ResponseStatusException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        Clan updatedClan = existingClan.get();
-        updatedClan.setClanNameEN(clan.getClanNameEN());
-        Clan savedClan = clanRepository.save(updatedClan);
-        return new ResponseEntity<>(savedClan, HttpStatus.OK);
     }
 
     /**
@@ -100,12 +114,12 @@ public class ClanController {
      */
     @DeleteMapping("/{identifier}")
     public ResponseEntity<Void> deleteClan(@PathVariable String identifier) {
-        Optional<Clan> existingClan = clanRepository.findByIdentifier(identifier);
-        if (!existingClan.isPresent()) {
+        try {
+            clanService.deleteClan(identifier);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (ResponseStatusException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        clanRepository.delete(existingClan.get());
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     /**
@@ -119,7 +133,7 @@ public class ClanController {
     public ResponseEntity<String> addSubClanRelationship(
         @PathVariable String parentClanIdentifier,
         @PathVariable String subClanIdentifier) {
-        clanRepository.addSubClanRelationship(parentClanIdentifier, subClanIdentifier);
+        clanService.addSubClanRelationshipByIdentifier(parentClanIdentifier, subClanIdentifier);
         return new ResponseEntity<>("Sub-clan relationship successfully added", HttpStatus.OK);
     }
 

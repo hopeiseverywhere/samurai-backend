@@ -1,10 +1,14 @@
 package com.fran.spring_boot_neo4j.queryresults;
 
 import com.fran.spring_boot_neo4j.models.Samurai;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Query result class for retrieving a samurai offspring and the relationship type.
  */
+@Setter
+@Getter
 public class SamuraiOffspringQueryResult {
 
     private Samurai offspring;
@@ -13,19 +17,4 @@ public class SamuraiOffspringQueryResult {
     public SamuraiOffspringQueryResult() {
     }
 
-    public Samurai getOffspring() {
-        return offspring;
-    }
-
-    public void setOffspring(Samurai offspring) {
-        this.offspring = offspring;
-    }
-
-    public String getRelationshipType() {
-        return relationshipType;
-    }
-
-    public void setRelationshipType(String relationshipType) {
-        this.relationshipType = relationshipType;
-    }
 }
