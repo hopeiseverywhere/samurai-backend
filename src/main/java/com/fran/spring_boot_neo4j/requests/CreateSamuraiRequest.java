@@ -17,6 +17,20 @@ public class CreateSamuraiRequest {
     private String parentIdentifier;
     private String relationshipType;
 
+    private boolean isFamilyHead;
+
+    private String clanName;
+
+    /**
+     * 氏
+     */
+    private String uji;
+
+    /**
+     * 八色の姓
+     */
+    private String kabane;
+
     /**
      * Default constructor.
      */
@@ -119,5 +133,43 @@ public class CreateSamuraiRequest {
 
     public void setRelationshipType(String relationshipType) {
         this.relationshipType = relationshipType;
+    }
+
+    // Family related
+
+    public boolean isFamilyHead() {
+        return isFamilyHead;
+    }
+
+    public void setFamilyHead(boolean familyHead) {
+        isFamilyHead = familyHead;
+    }
+
+    // Shisei related
+
+    public String getUji() {
+        return uji;
+    }
+
+    public void setUji(String uji) {
+        this.uji = uji;
+    }
+
+    public String getKabane() {
+        return kabane;
+    }
+
+    public void setKabane(String kabane) {
+        this.kabane = kabane;
+    }
+
+    // Clan related
+
+    public String getClanName() {
+        return clanName;
+    }
+
+    public void setClanName(String clanName) {
+        this.clanName = clanName;
     }
 }

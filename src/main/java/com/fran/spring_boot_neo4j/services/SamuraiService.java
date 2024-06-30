@@ -1,10 +1,12 @@
 package com.fran.spring_boot_neo4j.services;
 
+import com.fran.spring_boot_neo4j.models.Clan;
 import com.fran.spring_boot_neo4j.models.Samurai;
 import com.fran.spring_boot_neo4j.models.enums.ParentChildRelationshipType;
 import com.fran.spring_boot_neo4j.models.enums.SocialStatus;
 import com.fran.spring_boot_neo4j.objects.SamuraiDTO;
 import com.fran.spring_boot_neo4j.queryresults.SamuraiOffspringQueryResult;
+import com.fran.spring_boot_neo4j.repositories.ClanRepository;
 import com.fran.spring_boot_neo4j.repositories.SamuraiRepository;
 import com.fran.spring_boot_neo4j.requests.AddRelationshipRequest;
 import com.fran.spring_boot_neo4j.requests.CreateSamuraiRequest;
@@ -27,14 +29,17 @@ public class SamuraiService {
 
     private static final Logger logger = LoggerFactory.getLogger(SamuraiService.class);
     private final SamuraiRepository samuraiRepository;
+    private final ClanRepository clanRepository;
 
     /**
      * Constructs a new {@code SamuraiService} with the specified repository.
      *
      * @param samuraiRepository the repository for accessing samurai data
+     * @param clanRepository    the repository for accessing clan data
      */
-    public SamuraiService(SamuraiRepository samuraiRepository) {
+    public SamuraiService(SamuraiRepository samuraiRepository, ClanRepository clanRepository) {
         this.samuraiRepository = samuraiRepository;
+        this.clanRepository = clanRepository;
     }
 
     /**
@@ -45,22 +50,23 @@ public class SamuraiService {
      * @throws ResponseStatusException if the samurai is not found
      */
     public Samurai getSamuraiByIdentifier(String identifier) {
-        return samuraiRepository.findSamuraiByIdentifier(identifier)
-            .orElseThrow(() -> new ResponseStatusException(
-                HttpStatus.NOT_FOUND, "Samurai not found"));
+        return samuraiRepository.findSamuraiByIdentifier(identifier).orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Samurai not found"));
     }
+
 
     /**
      * Creates a new samurai.
      *
      * @param request the request object containing the details of the samurai to create
      * @return the created samurai
-     * @throws ResponseStatusException if a samurai with the same given name and family name already exists
+     * @throws ResponseStatusException if a samurai with the same given name and family name already
+     *                                 exists
      */
     public Samurai createSamurai(CreateSamuraiRequest request) {
         // Check for uniqueness
-        Optional<Samurai> existingSamurai = samuraiRepository
-            .findSamuraiByGivenNameAndFamilyName(request.getGivenName(), request.getFamilyName());
+        Optional<Samurai> existingSamurai = samuraiRepository.findSamuraiByGivenNameAndFamilyName(
+            request.getGivenName(), request.getFamilyName());
 
         if (existingSamurai.isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Samurai already exists");
@@ -87,8 +93,23 @@ public class SamuraiService {
             samurai.setDeathDate(request.getDeathDate());
         }
 
+        // Set family head status
+        samurai.setFamilyHead(request.isFamilyHead());
+
+        // Set Shisei related if provided
+        if (request.getUji() != null) {
+            samurai.setUji(request.getUji());
+        }
+        if (request.getKabane() != null) {
+            samurai.setKabane(request.getKabane());
+        }
+
         // Generate and set a random identifier
         samurai.setIdentifier(UUID.randomUUID().toString());
+
+        // Set clan if provided
+        Clan clan = getOrCreateClan(request);
+        samurai.setClan(clan);
 
         Samurai savedSamurai = samuraiRepository.save(samurai);
 
@@ -99,7 +120,30 @@ public class SamuraiService {
             samuraiRepository.createParentChildRelationship(parent.getIdentifier(),
                 savedSamurai.getIdentifier(), type);
         }
+
         return savedSamurai;
+    }
+
+    /**
+     * Helper method to get or create a clan based on the provided request.
+     *
+     * @param request the request object containing the clan details
+     * @return the existing or newly created clan
+     */
+    private Clan getOrCreateClan(CreateSamuraiRequest request) {
+        String clanName;
+        if (request.getClanName() != null && !request.getClanName().isEmpty()) {
+            clanName = request.getClanName();
+        } else {
+            clanName = request.getFamilyName();
+        }
+
+        return clanRepository.findByClanName(clanName)
+            .orElseGet(() -> {
+                Clan newClan = new Clan(clanName);
+                newClan.setIdentifier(UUID.randomUUID().toString());
+                return clanRepository.save(newClan);
+            });
     }
 
     /**
@@ -190,8 +234,8 @@ public class SamuraiService {
      * @param visited   the map of visited samurai
      */
     private void buildTree(SamuraiDTO parentDTO, Map<String, SamuraiDTO> visited) {
-        List<SamuraiOffspringQueryResult> children =
-            samuraiRepository.findAllOffspringByIdentifierWithType(parentDTO.getIdentifier());
+        List<SamuraiOffspringQueryResult> children = samuraiRepository.findAllOffspringByIdentifierWithType(
+            parentDTO.getIdentifier());
 
         for (SamuraiOffspringQueryResult childData : children) {
             Samurai child = childData.getOffspring();
@@ -223,4 +267,29 @@ public class SamuraiService {
         dto.setSex(samurai.getSex());
         return dto;
     }
+
+    /**
+     * Adds an existing samurai to a clan.
+     *
+     * @param samuraiIdentifier the identifier of the samurai
+     * @param clanName          the name of the clan
+     * @throws ResponseStatusException if the samurai or clan is not found
+     */
+    public void addSamuraiToClan(String samuraiIdentifier, String clanName) {
+        // Retrieve the samurai by identifier
+        Samurai samurai = getSamuraiByIdentifier(samuraiIdentifier);
+
+        // Retrieve or create the clan
+        Clan clan = clanRepository.findByClanName(clanName)
+            .orElseGet(() -> {
+                Clan newClan = new Clan(clanName);
+                newClan.setIdentifier(UUID.randomUUID().toString());
+                return clanRepository.save(newClan);
+            });
+
+        // Set the samurai's clan and save the samurai
+        samurai.setClan(clan);
+        samuraiRepository.save(samurai);
+    }
+
 }

@@ -78,4 +78,17 @@ public interface SamuraiRepository extends Neo4jRepository<Samurai, Long> {
     @Query("MATCH (parent:Samurai {identifier: $identifier})-[r:PARENT_CHILD]->(offspring:Samurai) "
         + "RETURN offspring AS offspring, r.type AS relationshipType")
     List<SamuraiOffspringQueryResult> findAllOffspringByIdentifierWithType(String identifier);
+
+    /**
+     * Adds a relationship between a human and a clan. This query matches a human with the specified
+     * identifier and a clan with the specified identifier, then creates a relationship indicating
+     * that the human belongs to the clan.
+     *
+     * @param humanIdentifier the identifier of the human
+     * @param clanIdentifier  the identifier of the clan
+     */
+    @Query(
+        "MATCH (h:Human {identifier: $humanIdentifier}), (c:Clan {identifier: $clanIdentifier}) " +
+            "MERGE (h)-[:BELONGS_TO]->(c)")
+    void addClanToHuman(String humanIdentifier, String clanIdentifier);
 }

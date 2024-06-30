@@ -20,6 +20,8 @@ public class SamuraiDTO {
     private String relationshipTypeWithParent;
     private List<SamuraiDTO> offspring = new ArrayList<>();
 
+    private boolean isFamilyHead;
+
     /**
      * Constructs a new {@code SamuraiDTO} with the specified given name and family name.
      *
@@ -190,5 +192,14 @@ public class SamuraiDTO {
 
     public void addOffspring(SamuraiDTO offspring) {
         this.offspring.add(offspring);
+    }
+
+    // Family related
+    public boolean isFamilyHead() {
+        return isFamilyHead;
+    }
+
+    public void setFamilyHead(boolean familyHead) {
+        isFamilyHead = familyHead;
     }
 }

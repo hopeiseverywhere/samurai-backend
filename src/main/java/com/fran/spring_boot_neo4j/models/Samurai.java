@@ -1,23 +1,25 @@
 package com.fran.spring_boot_neo4j.models;
 
-import com.fran.spring_boot_neo4j.models.enums.ClanStatus;
+import com.fran.spring_boot_neo4j.models.enums.ClanHeritageStatus;
 import com.fran.spring_boot_neo4j.models.enums.SocialStatus;
+import org.neo4j.ogm.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.schema.Node;
 
 /**
  * Represents a samurai entity in the Neo4j database.
  */
-@Node
+@NodeEntity
 public class Samurai extends Human {
 
     private SocialStatus socialStatus;
-    private ClanStatus clanStatus;
+    private ClanHeritageStatus clanHeritageStatus;
+
 
     public Samurai() {
     }
 
-    public void setClanStatus(ClanStatus clanStatus) {
-        this.clanStatus = clanStatus;
+    public void setClanStatus(ClanHeritageStatus clanHeritageStatus) {
+        this.clanHeritageStatus = clanHeritageStatus;
     }
 
     public void setSocialStatus(SocialStatus socialStatus) {
@@ -28,7 +30,7 @@ public class Samurai extends Human {
         return socialStatus;
     }
 
-    public ClanStatus getClanStatus() {
-        return clanStatus;
+    public ClanHeritageStatus getClanStatus() {
+        return clanHeritageStatus;
     }
 }

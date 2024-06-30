@@ -21,18 +21,4 @@ public interface UserRepository extends Neo4jRepository<User, Long> {
      */
     Optional<User> findUserByUsername(String username);
 
-    /**
-     * Finds the enrollment status of a user for a specific course.
-     *
-     * @param username   the username of the user
-     * @param identifier the identifier of the course
-     * @return {@code true} if the user is enrolled in the course, {@code false} otherwise
-     */
-    @Query(
-        "MATCH (user:User), (course:Course) WHERE user.username = $username " +
-            "AND course.identifier = $identifier " +
-            "RETURN EXISTS((user)-[:ENROLLED_IN]->(course))")
-    Boolean findEnrollmentStatus(String username, String identifier);
-
-
 }

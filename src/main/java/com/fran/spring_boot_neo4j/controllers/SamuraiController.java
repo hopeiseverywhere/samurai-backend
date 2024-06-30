@@ -5,7 +5,6 @@ import com.fran.spring_boot_neo4j.objects.SamuraiDTO;
 import com.fran.spring_boot_neo4j.requests.AddRelationshipRequest;
 import com.fran.spring_boot_neo4j.requests.CreateSamuraiRequest;
 import com.fran.spring_boot_neo4j.services.SamuraiService;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -20,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 /**
- * Controller class for managing samurai entities.
+ * Controller class for managing {@link Samurai} entities.
  */
 @Controller
 @RequestMapping("/api/v1/samurai")
@@ -122,5 +121,19 @@ public class SamuraiController {
     public ResponseEntity<SamuraiDTO> getSamuraiOffspring(@PathVariable String identifier) {
         SamuraiDTO samuraiTree = samuraiService.getSamuraiTree(identifier);
         return new ResponseEntity<>(samuraiTree, HttpStatus.OK);
+    }
+
+    /**
+     * Adds an existing samurai to a clan.
+     *
+     * @param samuraiIdentifier the identifier of the samurai
+     * @param clanName          the name of the clan
+     * @return a {@code ResponseEntity} containing a success message
+     */
+    @PostMapping("/{samuraiIdentifier}/{clanName}")
+    public ResponseEntity<String> addSamuraiToClan(@PathVariable String samuraiIdentifier,
+        @PathVariable String clanName) {
+        samuraiService.addSamuraiToClan(samuraiIdentifier, clanName);
+        return new ResponseEntity<>("Samurai added to clan successfully", HttpStatus.OK);
     }
 }
