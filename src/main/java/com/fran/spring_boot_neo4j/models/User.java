@@ -2,6 +2,8 @@ package com.fran.spring_boot_neo4j.models;
 
 import java.util.Arrays;
 import java.util.Collection;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
 import org.springframework.security.core.GrantedAuthority;
@@ -15,24 +17,17 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue
+    @Getter
     private Long id;
+    @Setter @Getter
     private String name;
+    @Setter
     private String username;
+    @Setter
     private String password;
+    @Setter @Getter
     private String roles;
 
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getRoles() {
-        return roles;
-    }
 
     /**
      * Returns the authorities granted to the user.
@@ -112,19 +107,4 @@ public class User implements UserDetails {
         return true;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public void setRoles(String roles) {
-        this.roles = roles;
-    }
 }

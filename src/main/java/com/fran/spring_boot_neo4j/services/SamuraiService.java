@@ -65,8 +65,8 @@ public class SamuraiService {
      */
     public Samurai createSamurai(CreateSamuraiRequest request) {
         // Check for uniqueness
-        Optional<Samurai> existingSamurai = samuraiRepository.findSamuraiByGivenNameAndFamilyName(
-            request.getGivenName(), request.getFamilyName());
+        Optional<Samurai> existingSamurai = samuraiRepository.findSamuraiByGivenNameENAndFamilyNameEN(
+            request.getGivenNameEN(), request.getFamilyNameEN());
 
         if (existingSamurai.isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Samurai already exists");
@@ -75,14 +75,14 @@ public class SamuraiService {
         // Create and save new samurai
         Samurai samurai = new Samurai();
         samurai.setSocialStatus(SocialStatus.SAMURAI);
-        samurai.setGivenName(request.getGivenName());
-        samurai.setFamilyName(request.getFamilyName());
+        samurai.setGivenNameEN(request.getGivenNameEN());
+        samurai.setFamilyNameEN(request.getFamilyNameEN());
 
         // Generate nickname if not provided
-        if (request.getNickName() == null || request.getNickName().isEmpty()) {
-            samurai.setNickName(request.getFamilyName() + " " + request.getGivenName());
+        if (request.getNickNameEN() == null || request.getNickNameEN().isEmpty()) {
+            samurai.setNickNameEN(request.getFamilyNameEN() + " " + request.getGivenNameEN());
         } else {
-            samurai.setNickName(request.getNickName());
+            samurai.setNickNameEN(request.getNickNameEN());
         }
 
         // Set birthDate and deathDate if provided
@@ -97,11 +97,11 @@ public class SamuraiService {
         samurai.setFamilyHead(request.isFamilyHead());
 
         // Set Shisei related if provided
-        if (request.getUji() != null) {
-            samurai.setUji(request.getUji());
+        if (request.getUjiEN() != null) {
+            samurai.setUjiEN(request.getUjiEN());
         }
-        if (request.getKabane() != null) {
-            samurai.setKabane(request.getKabane());
+        if (request.getKabaneEN() != null) {
+            samurai.setKabaneEN(request.getKabaneEN());
         }
 
         // Generate and set a random identifier
@@ -131,16 +131,16 @@ public class SamuraiService {
      * @return the existing or newly created clan
      */
     private Clan getOrCreateClan(CreateSamuraiRequest request) {
-        String clanName;
-        if (request.getClanName() != null && !request.getClanName().isEmpty()) {
-            clanName = request.getClanName();
+        String clanNameEN;
+        if (request.getClanNameEN() != null && !request.getClanNameEN().isEmpty()) {
+            clanNameEN = request.getClanNameEN();
         } else {
-            clanName = request.getFamilyName();
+            clanNameEN = request.getFamilyNameEN();
         }
 
-        return clanRepository.findByClanName(clanName)
+        return clanRepository.findByClanNameEN(clanNameEN)
             .orElseGet(() -> {
-                Clan newClan = new Clan(clanName);
+                Clan newClan = new Clan(clanNameEN);
                 newClan.setIdentifier(UUID.randomUUID().toString());
                 return clanRepository.save(newClan);
             });
@@ -259,9 +259,9 @@ public class SamuraiService {
      * @return the DTO representation of the samurai
      */
     private SamuraiDTO convertToDTO(Samurai samurai) {
-        SamuraiDTO dto = new SamuraiDTO(samurai.getIdentifier(), samurai.getGivenName(),
-            samurai.getFamilyName());
-        dto.setNickName(samurai.getNickName());
+        SamuraiDTO dto = new SamuraiDTO(samurai.getIdentifier(), samurai.getGivenNameEN(),
+            samurai.getFamilyNameEN());
+        dto.setNickNameEN(samurai.getNickNameEN());
         dto.setBirthDate(samurai.getBirthDate());
         dto.setDeathDate(samurai.getDeathDate());
         dto.setSex(samurai.getSex());
@@ -280,7 +280,7 @@ public class SamuraiService {
         Samurai samurai = getSamuraiByIdentifier(samuraiIdentifier);
 
         // Retrieve or create the clan
-        Clan clan = clanRepository.findByClanName(clanName)
+        Clan clan = clanRepository.findByClanNameEN(clanName)
             .orElseGet(() -> {
                 Clan newClan = new Clan(clanName);
                 newClan.setIdentifier(UUID.randomUUID().toString());

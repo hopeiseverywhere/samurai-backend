@@ -36,7 +36,7 @@ public class ClanService {
      * @throws ResponseStatusException if the clan is not found
      */
     public Clan getClanByName(String name) {
-        return clanRepository.findByClanName(name)
+        return clanRepository.findByClanNameEN(name)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Clan not found"));
     }
 
@@ -60,7 +60,7 @@ public class ClanService {
      * @throws ResponseStatusException if a clan with the same name already exists
      */
     public Clan createClan(String clanName) {
-        if (clanRepository.findByClanName(clanName).isPresent()) {
+        if (clanRepository.findByClanNameEN(clanName).isPresent()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Clan already exists");
         }
 
@@ -77,7 +77,7 @@ public class ClanService {
      * @throws ResponseStatusException if the clan is not found
      */
     public void addClanToHuman(String humanIdentifier, String clanName) {
-        Clan clan = clanRepository.findByClanName(clanName)
+        Clan clan = clanRepository.findByClanNameEN(clanName)
             .orElseGet(() -> clanRepository.save(new Clan(clanName)));
         samuraiRepository.addClanToHuman(humanIdentifier, clan.getIdentifier());
     }
@@ -90,9 +90,9 @@ public class ClanService {
      * @throws ResponseStatusException if either clan is not found
      */
     public void addSubClanRelationshipByName(String clanName, String parentClanName) {
-        Clan clan = clanRepository.findByClanName(clanName)
+        Clan clan = clanRepository.findByClanNameEN(clanName)
             .orElseGet(() -> clanRepository.save(new Clan(clanName)));
-        Clan parentClan = clanRepository.findByClanName(parentClanName)
+        Clan parentClan = clanRepository.findByClanNameEN(parentClanName)
             .orElseGet(() -> clanRepository.save(new Clan(parentClanName)));
         addSubClanRelationshipByIdentifier(parentClan.getIdentifier(), clan.getIdentifier());
     }

@@ -2,6 +2,8 @@ package com.fran.spring_boot_neo4j.models;
 
 import com.fran.spring_boot_neo4j.models.enums.ClanHeritageStatus;
 import com.fran.spring_boot_neo4j.models.enums.SocialStatus;
+import lombok.Getter;
+import lombok.Setter;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.schema.Node;
 
@@ -11,7 +13,9 @@ import org.springframework.data.neo4j.core.schema.Node;
 @NodeEntity
 public class Samurai extends Human {
 
+    @Setter @Getter
     private SocialStatus socialStatus;
+    @Getter @Setter
     private ClanHeritageStatus clanHeritageStatus;
 
 
@@ -22,15 +26,6 @@ public class Samurai extends Human {
         this.clanHeritageStatus = clanHeritageStatus;
     }
 
-    public void setSocialStatus(SocialStatus socialStatus) {
-        this.socialStatus = socialStatus;
-    }
 
-    public SocialStatus getSocialStatus() {
-        return socialStatus;
-    }
 
-    public ClanHeritageStatus getClanStatus() {
-        return clanHeritageStatus;
-    }
 }

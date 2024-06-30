@@ -37,7 +37,7 @@ public class ClanController {
      */
     @PostMapping("/")
     public ResponseEntity<Clan> createClan(@RequestBody Clan clan) {
-        Optional<Clan> existingClan = clanRepository.findByClanName(clan.getClanName());
+        Optional<Clan> existingClan = clanRepository.findByClanNameEN(clan.getClanNameEN());
         if (existingClan.isPresent()) {
             return new ResponseEntity<>(HttpStatus.CONFLICT);
         }
@@ -67,7 +67,7 @@ public class ClanController {
      */
     @GetMapping("/name/{clanName}")
     public ResponseEntity<Clan> getClanByClanName(@PathVariable String clanName) {
-        Optional<Clan> clan = clanRepository.findByClanName(clanName);
+        Optional<Clan> clan = clanRepository.findByClanNameEN(clanName);
         return clan.map(value -> new ResponseEntity<>(value, HttpStatus.OK))
             .orElseGet(() -> new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
@@ -87,7 +87,7 @@ public class ClanController {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
         Clan updatedClan = existingClan.get();
-        updatedClan.setClanName(clan.getClanName());
+        updatedClan.setClanNameEN(clan.getClanNameEN());
         Clan savedClan = clanRepository.save(updatedClan);
         return new ResponseEntity<>(savedClan, HttpStatus.OK);
     }

@@ -26,11 +26,11 @@ public interface SamuraiRepository extends Neo4jRepository<Samurai, Long> {
     /**
      * Finds a samurai by its given name and family name.
      *
-     * @param givenName  the given name of the samurai
-     * @param familyName the family name of the samurai
+     * @param givenNameEN  the given name of the samurai
+     * @param familyNameEN the family name of the samurai
      * @return an {@link Optional} containing the found samurai, or empty if no samurai found
      */
-    Optional<Samurai> findSamuraiByGivenNameAndFamilyName(String givenName, String familyName);
+    Optional<Samurai> findSamuraiByGivenNameENAndFamilyNameEN(String givenNameEN, String familyNameEN);
 
     /**
      * Finds a samurai by its nickname.
@@ -65,7 +65,7 @@ public interface SamuraiRepository extends Neo4jRepository<Samurai, Long> {
      */
     @Query(
         "MATCH (parent:Samurai {identifier: $parentIdentifier}), (child:Samurai {identifier: $childIdentifier}) "
-            + "MERGE (parent)-[r:PARENT_CHILD {type: $relationshipType}]->(child) " + "RETURN r")
+            + "MERGE (parent)-[r:PARENT_OF {type: $relationshipType}]->(child) " + "RETURN r")
     void createParentChildRelationship(String parentIdentifier, String childIdentifier,
         String relationshipType);
 

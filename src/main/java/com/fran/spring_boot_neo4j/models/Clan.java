@@ -1,5 +1,6 @@
 package com.fran.spring_boot_neo4j.models;
 
+import lombok.Data;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.springframework.data.neo4j.core.schema.GeneratedValue;
 import org.springframework.data.neo4j.core.schema.Id;
@@ -8,6 +9,7 @@ import org.springframework.data.neo4j.core.schema.Id;
  * Represents a clan entity in the Neo4j database.
  */
 @NodeEntity
+@Data
 public class Clan {
 
     @Id
@@ -16,29 +18,16 @@ public class Clan {
 
     private String identifier;
 
+    private String clanNameEN;
 
-    private String clanName;
+    private String clanNameJP;
 
     public Clan() {
     }
 
-    public Clan(String clanName) {
-        this.clanName = clanName;
+    public Clan(String clanNameEn) {
+        this.clanNameEN = clanNameEn;
     }
 
-    public String getIdentifier() {
-        return identifier;
-    }
 
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
-    }
-
-    public String getClanName() {
-        return clanName;
-    }
-
-    public void setClanName(String clanName) {
-        this.clanName = clanName;
-    }
 }

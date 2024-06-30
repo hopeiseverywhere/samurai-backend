@@ -12,7 +12,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface ClanRepository extends Neo4jRepository<Clan, Long> {
 
-    Optional<Clan> findByClanName(String name);
+    Optional<Clan> findByClanNameEN(String nameEN);
 
     Optional<Clan> findByIdentifier(String identifier);
 

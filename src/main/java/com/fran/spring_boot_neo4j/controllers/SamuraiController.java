@@ -46,7 +46,7 @@ public class SamuraiController {
     @GetMapping("/{identifier}")
     public ResponseEntity<SamuraiDTO> getSamuraiByIdentifier(@PathVariable String identifier) {
         Samurai samurai = samuraiService.getSamuraiByIdentifier(identifier);
-        SamuraiDTO responseSamurai = new SamuraiDTO(samurai.getGivenName(), samurai.getFamilyName(),
+        SamuraiDTO responseSamurai = new SamuraiDTO(samurai.getGivenNameEN(), samurai.getFamilyNameEN(),
             samurai.getBirthDate(), samurai.getDeathDate());
 
         return new ResponseEntity<>(responseSamurai, HttpStatus.OK);
