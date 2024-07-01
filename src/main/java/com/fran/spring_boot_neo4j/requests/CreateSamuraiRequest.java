@@ -75,13 +75,13 @@ public class CreateSamuraiRequest {
         return isFamilyHead;
     }
 
-    private Map<String, String> generateNickName(Map<String, String> familyName,
+    public Map<String, String> generateNickName(Map<String, String> familyName,
         Map<String, String> givenName) {
         // Implement your logic to generate nicknames in multiple languages
         // This example just concatenates the values with a space
         return Map.of(
             "en", givenName.get("en") + " " + familyName.get("en"),
-            "jp", familyName.get("jp") + " " + givenName.get("jp")
+            "jp", familyName.get("jp") + givenName.get("jp")
         );
     }
 

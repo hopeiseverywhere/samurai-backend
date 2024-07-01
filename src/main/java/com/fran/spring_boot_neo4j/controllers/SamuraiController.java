@@ -5,8 +5,7 @@ import com.fran.spring_boot_neo4j.objects.SamuraiDTO;
 import com.fran.spring_boot_neo4j.requests.AddRelationshipRequest;
 import com.fran.spring_boot_neo4j.requests.CreateSamuraiRequest;
 import com.fran.spring_boot_neo4j.services.SamuraiService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -49,6 +48,18 @@ public class SamuraiController {
             samurai.getBirthDate(), samurai.getDeathDate());
 
         return new ResponseEntity<>(responseSamurai, HttpStatus.OK);
+    }
+
+    /**
+     * Searches for a samurai by nickname.
+     *
+     * @param nickName the nickname to search for
+     * @return a {@code ResponseEntity} containing the list of samurai data
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<SamuraiDTO>> searchSamuraiByNickName(@RequestParam String nickName) {
+        List<SamuraiDTO> samurais = samuraiService.searchSamuraiByNickName(nickName);
+        return new ResponseEntity<>(samurais, HttpStatus.OK);
     }
 
     /**

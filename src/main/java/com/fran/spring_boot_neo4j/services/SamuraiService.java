@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -55,6 +56,20 @@ public class SamuraiService {
 
 
     /**
+     * Searches for samurai by nickname.
+     *
+     * @param nickName the nickname to search for
+     * @return a list of samurai DTOs matching the nickname
+     */
+    public List<SamuraiDTO> searchSamuraiByNickName(String nickName) {
+        List<Samurai> samurais = samuraiRepository.searchAllSamuraisByNickName(nickName);
+        return samurais.stream()
+            .map(this::convertToDTO)
+            .collect(Collectors.toList());
+    }
+
+
+    /**
      * Creates a new samurai.
      *
      * @param request the request object containing the details of the samurai to create
@@ -81,11 +96,8 @@ public class SamuraiService {
 
         // Generate nickname if not provided
         if (request.getNickName() == null || request.getNickName().isEmpty()) {
-            Map<String, String> nickName = new HashMap<>();
-            for (String lang : request.getGivenName().keySet()) {
-                nickName.put(lang,
-                    request.getFamilyName().get(lang) + " " + request.getGivenName().get(lang));
-            }
+            Map<String, String> nickName = request.generateNickName(request.getFamilyName(),
+                request.getGivenName());
             samurai.setNickName(nickName);
         } else {
             samurai.setNickName(request.getNickName());
